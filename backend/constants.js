@@ -1,0 +1,1 @@
+export const DB_NAME='devops_todo_app';
