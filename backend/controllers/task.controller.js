@@ -1,56 +1,126 @@
-import mongoose from 'mongoose';
+import { Types } from 'mongoose';
 import { Task } from '../models/task.model.js';
 
-const isValidId = (id) => mongoose.isValidObjectId(id);
+const isValidId = (id) => Types.ObjectId.isValid(id);
 
-export const getTasks = async (req, res) => {
-	const tasks = await Task.find().sort({ createdAt: -1 });
-	res.status(200).json({ success: true, data: tasks });
-};
-
-export const getTask = async (req, res) => {
-	if (!isValidId(req.params.id)) {
-		return res.status(400).json({ success: false, message: 'Invalid task id' });
-	}
-
-	const task = await Task.findById(req.params.id);
-	if (!task) {
-		return res.status(404).json({ success: false, message: 'Task not found' });
-	}
-
-	res.status(200).json({ success: true, data: task });
-};
-
-export const createTask = async (req, res) => {
-	const task = await Task.create(req.body);
-	res.status(201).json({ success: true, data: task });
-};
-
-export const updateTask = async (req, res) => {
-	if (!isValidId(req.params.id)) {
-		return res.status(400).json({ success: false, message: 'Invalid task id' });
-	}
-
-	const task = await Task.findByIdAndUpdate(req.params.id, req.body, {
-		new: true,
-		runValidators: true
+const sendSuccess = (res, statusCode, data, message = 'Success') => {
+	return res.status(statusCode).json({
+		success: true,
+		message,
+		data
 	});
-	if (!task) {
-		return res.status(404).json({ success: false, message: 'Task not found' });
-	}
-
-	res.status(200).json({ success: true, data: task });
 };
 
-export const deleteTask = async (req, res) => {
-	if (!isValidId(req.params.id)) {
-		return res.status(400).json({ success: false, message: 'Invalid task id' });
+const sendError = (res, statusCode, message) => {
+	return res.status(statusCode).json({
+		success: false,
+		message
+	});
+};
+ 
+export const getTasks = async (req, res, next) => {
+	try {
+		const tasks = await Task.find()
+			.sort({ createdAt: -1 })
+			.lean();
+
+		return sendSuccess(res, 200, tasks);
+	} catch (error) {
+		return next(error);
+	}
+};
+
+ 
+export const getTask = async (req, res, next) => {
+	const { id } = req.params;
+
+	if (!isValidId(id)) {
+		return sendError(res, 400, 'Invalid task id');
 	}
 
-	const task = await Task.findByIdAndDelete(req.params.id);
-	if (!task) {
-		return res.status(404).json({ success: false, message: 'Task not found' });
+	try {
+		const task = await Task.findById(id).lean();
+
+		if (!task) {
+			return sendError(res, 404, 'Task not found');
+		}
+
+		return sendSuccess(res, 200, task);
+	} catch (error) {
+		return next(error);
+	}
+};
+
+ 
+export const createTask = async (req, res, next) => {
+	try {
+		const task = await Task.create(req.body);
+
+		return sendSuccess(
+			res,
+			201,
+			task,
+			'Task created successfully'
+		);
+	} catch (error) {
+		return next(error);
+	}
+};
+
+ 
+export const updateTask = async (req, res, next) => {
+	const { id } = req.params;
+
+	if (!isValidId(id)) {
+		return sendError(res, 400, 'Invalid task id');
 	}
 
-	res.status(200).json({ success: true, message: 'Task deleted successfully' });
+	try {
+		const task = await Task.findByIdAndUpdate(
+			id,
+			req.body,
+			{
+				new: true,
+				runValidators: true
+			}
+		).lean();
+
+		if (!task) {
+			return sendError(res, 404, 'Task not found');
+		}
+
+		return sendSuccess(
+			res,
+			200,
+			task,
+			'Task updated successfully'
+		);
+	} catch (error) {
+		return next(error);
+	}
+};
+ 
+export const deleteTask = async (req, res, next) => {
+	const { id } = req.params;
+
+	if (!isValidId(id)) {
+		return sendError(res, 400, 'Invalid task id');
+	}
+
+	try {
+		const task = await Task.findByIdAndDelete(id);
+
+		if (!task) {
+			return sendError(res, 404, 'Task not found');
+		}
+
+		return sendSuccess(
+			res,
+			200,
+			null,
+			'Task deleted successfully'
+		);
+	} catch (error) {
+		return next(error);
+	}
 };

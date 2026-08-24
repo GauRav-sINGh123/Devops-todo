@@ -11,7 +11,7 @@ const taskSchema = new mongoose.Schema(
 		category: {
 			type: String,
 			trim: true,
-			default: 'Personal'
+			default: 'Personal',
 		},
 		due: {
 			type: String,
