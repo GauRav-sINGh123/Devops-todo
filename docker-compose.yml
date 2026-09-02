@@ -14,8 +14,6 @@ services:
         - VITE_BACKEND_URL=http://3.26.221.91:5000
     container_name: frontend
     restart: always
-    env_file:
-      - ./frontend/.env
     ports:
       - "5173:5173"
     depends_on:
