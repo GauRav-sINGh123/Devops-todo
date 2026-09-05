@@ -61,23 +61,22 @@ jobs:
           set -e
 
           cd "$EC2_APP_DIR"
-          
+
           echo "Fetching latest code..."
           git fetch origin main
 
           echo "Resetting to origin/main..."
           git reset --hard origin/main
-          
+
           echo "Building and starting containers..."
           docker compose up -d --build
 
           echo "Cleaning unused images..."
           docker image prune -f
-          
+
           echo "Container status:"
           docker compose ps
-          EOF        
-            
+          EOF
             
       
        
