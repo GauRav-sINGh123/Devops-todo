@@ -57,20 +57,25 @@ jobs:
           EC2_USER: ${{ secrets.EC2_USER }}
           EC2_APP_DIR: ${{ secrets.EC2_APP_DIR }}
         run: |
-          ssh -i ec2_key.pem ${EC2_USER}@${EC2_HOST} << 'EOF'
+          ssh -i ec2_key.pem "${EC2_USER}@${EC2_HOST}" "EC2_APP_DIR='${EC2_APP_DIR}' bash -s" <<'EOF'
           set -e
-          cd "${EC2_APP_DIR}"
 
-          git fetch --all
-
-          git reset --hard origin/main
-
-          docker compose up -d --build
+          cd "$EC2_APP_DIR"
           
-          docker image prune -f
+          echo "Fetching latest code..."
+          git fetch origin main
 
+          echo "Resetting to origin/main..."
+          git reset --hard origin/main
+          
+          echo "Building and starting containers..."
+          docker compose up -d --build
+
+          echo "Cleaning unused images..."
+          docker image prune -f
+          
+          echo "Container status:"
           docker compose ps
-        
           EOF        
             
             
