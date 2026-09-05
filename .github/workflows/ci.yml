@@ -61,20 +61,19 @@ jobs:
           set -e
           cd "${EC2_APP_DIR}"
 
-          if [ ! -d .git ]; then
-          echo "Initializing git repository..."
-          git init
-          git remote add origin ${REPO_URL}
-          fi
-    
-     
-          git fetch origin main
+          git fetch --all
+
           git reset --hard origin/main
-    
 
           docker compose up -d --build
+          
           docker image prune -f
+
           docker compose ps
-          EOF
+        
+          EOF        
+            
+            
+      
        
  
